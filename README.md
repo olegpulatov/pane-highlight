@@ -28,7 +28,7 @@ styling uses tern's internal pane selectors (`.tn-pane.on`, `.tn-body`, `.tn-vei
 ## install
 
 ```fish
-tern plugin install github.com/OWNER/pane-highlight
+tern plugin install github.com/olegpulatov/pane-highlight
 ```
 
 for a local checkout: `just link`. tern loads the checkout directly; `tern plugin reload` applies edits.
