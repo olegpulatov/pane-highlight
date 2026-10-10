@@ -321,7 +321,13 @@ end
 
 -- Style ---------------------------------------------------------------------
 
+-- tern.css replaces the whole sheet and restyles the window, so only on a change.
+local shown: string? = nil
 local function set_style(color: string)
+	if color == shown then
+		return
+	end
+	shown = color
 	tern.css(
 		"pane-highlight",
 		string.format(
@@ -411,18 +417,27 @@ local function apply(cx: WindowCx, pane_id: number, color: string)
 	end
 end
 
+-- Only the focused pane shows a rule color, so only it is checked; focus checks again.
 -- line: the command line just started (event); nil reads the pane's running line.
 local function update(cx: WindowCx, pane_id: number, line: string?)
+	if cx.session:focused() ~= pane_id then
+		return
+	end
 	generation[pane_id] = (generation[pane_id] or 0) + 1
 	local gen = generation[pane_id]
+	local info = cx.session:pane(pane_id)
 	if line == nil then
-		local info = cx.session:pane(pane_id)
 		line = info and info.running and info.running.line
 	end
 	-- A running `sudo -i` or `ssh root@…` decides at once.
 	local color = line and color_for(line_targets(line))
 	if color then
 		apply(cx, pane_id, color)
+		return
+	end
+	-- Browser, file and other non-shell panes run no ssh: no lookup.
+	if not info or info.kind ~= "terminal" then
+		apply(cx, pane_id, color_for({ host_target(cx, pane_id) }) or DEFAULT_COLOR)
 		return
 	end
 	foreground(pane_id, cx, function(found, next_cx)
