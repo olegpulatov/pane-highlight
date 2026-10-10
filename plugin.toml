@@ -1,6 +1,6 @@
 schema = 1
-id = "tern-plugin-base"
-name = "Tern Plugin Base"
-version = "0.0.1"
-description = "A minimal, copyable starter for Tern plugins."
-host = "host.luau"
+id = "pane-highlight"
+name = "Pane Highlight"
+version = "0.1.0"
+description = "Marks the active pane with a thin border and tint, dims the rest, and warns when the pane runs as a watched user."
+window = "window.luau"

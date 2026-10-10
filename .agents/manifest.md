@@ -1,4 +1,4 @@
-# tern-plugin-base manifest
+# pane-highlight manifest
 
 source of truth for goals and decisions. agents check their work against it and discuss core changes with the owner before applying them.
 
@@ -6,11 +6,18 @@ in a plugin made from this base: replace "what it is" with the plugin's own purp
 
 ## what it is
 
-starter repo for my tern terminal plugins. a new plugin starts as a plain copy or clone of this folder. my plugins share structure, install the standard tern way, and are ready to publish as open source.
+tern window plugin that marks the active pane in split views and recolors it while it works as a given user or on a given host. made to be shared as open source: published defaults are universal (`root`, `prod-*`, `dev-*`); personal rules live in each user's `config.json`.
 
-goal: run 5-50 plugins without friction. agents spend effort on features; i change params, check, and publish without thinking about the base.
+features:
 
-it offers a usable default, not a framework. a plugin may delete any part or ignore the base completely.
+- active pane: inset border and a tint of the accent color over the terminal background, tint % separate for light and dark appearance (`light-dark()`)
+- inactive panes: dimmed
+- rules: ordered `{user?, host?, color}`, first match wins; colors are palette names or css colors; user palette entries add to the built-in one
+- detection, window-scoped only: running command line from `cx.session:pane()` and command events, split into commands at `;`, `&&`, `||`, `|` (`ssh`, `tern ssh`, `su`, `sudo`, `sudo su`; no user = root), remoting host name and login user from `cx.hosts`, tern's own user. no `tern process` lookup: the plugin cannot learn its window key, so that cli reads the wrong window
+
+limits, by tern: inactive panes have no per-pane css hook, so only the active pane takes a rule color; only the outermost command in a pane is seen; panes without shell integration report no command line; sudo credential caching is per terminal, so it is not detected.
+
+styling relies on tern's internal pane selectors (`.tn-pane.on`, `.tn-body`, `.tn-veil`); they are undocumented and may change between tern versions.
 
 keep it readable and maintainable for future contributors. code, tooling, and documentation must earn their place.
 
