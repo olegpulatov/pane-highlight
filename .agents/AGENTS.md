@@ -21,8 +21,8 @@ commands and ssh
 - `tern process --window K <pane> --json` gives `foreground.argv`, e.g. `ssh user@host`, for the whole ssh session
 - PaneInfo has no argv or command field; `running.line` is the only command text. a pane made with `tern split ... -- cmd` runs `fish -l -c "cmd"`
 - with tern shell integration on the remote host, remote commands replace the pane's command state: after the first remote command `running` is nil and `last.line` is that command
-- leaving ssh may bring no `command_finished` for the local `ssh` line; the `cwd` event (directory back to local) does arrive
-- one shell command fires `command_started`, `command_finished`, `cwd` and several `title` events. a lookup per `title` event cost 7 processes per command, so the plugin does not hook `title`
+- leaving a real ssh session kept the rule color until the plugin also rechecked on `cwd` events; with that recheck the color resets (confirmed by the owner). not traced: whether `command_finished` for the local `ssh` line is missing, and whether `cwd` is the event that fixed it
+- one `cd` in a local fish pane fired `command_started`, `command_finished`, `cwd` and several `title` events; a lookup per event cost 7 processes, so the plugin does not hook `title`
 
 styling
 
