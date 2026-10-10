@@ -1,0 +1,6 @@
+schema = 1
+id = "tern-plugin-base"
+name = "Tern Plugin Base"
+version = "0.0.1"
+description = "A minimal, copyable starter for Tern plugins."
+host = "host.luau"
