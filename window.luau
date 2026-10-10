@@ -365,7 +365,7 @@ local function host_target(cx: WindowCx, pane_id: number): Target
 	return { user = tern.getenv("USER") or tern.getenv("LOGNAME") }
 end
 
--- The pane's foreground program (`ssh ops@n1` for a whole ssh session), from `tern process`.
+-- The pane's foreground program (`ssh deploy@web1` for a whole ssh session), from `tern process`.
 -- The plugin cannot learn its window key, and `tern process` sees one window's panes,
 -- so it asks window keys 1..MAX_WINDOWS until one knows the pane. Bounded workaround:
 -- other window keys are not reached.

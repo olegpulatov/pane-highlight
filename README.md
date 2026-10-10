@@ -11,7 +11,7 @@ out of the box: `root` ember, `prod-*` hosts red, `dev-*` hosts mint.
 what a rule sees:
 
 - the command line running in the pane, from tern's shell integration: `ssh [user@]host`, `tern ssh …`, `su [user]`, `sudo [-u user] …`. `su` and `sudo` without a user mean `root`
-- the pane's foreground program, from `tern process`: an `ssh ops@n1` session counts for its whole length, also after commands typed on the remote machine
+- the pane's foreground program, from `tern process`: an `ssh deploy@web1` session counts for its whole length, also after commands typed on the remote machine
 - tern remoting: the host name and login user of a remote pane
 - tern's own user, for local panes
 
@@ -62,7 +62,7 @@ defaults:
 - `border`: border width in px, 0 = none. its color follows the tint color
 - `dim`: veil opacity over inactive panes, 0 = no dimming
 - `colors`: your own named colors; they add to or replace the built-in palette: `amber` `#F2B04C`, `red` `#E85B5B`, `magma` `#FF7A3D`, `ember` `#b84a2c`, `sage` `#6a9a6a`, `mint` `#35C28A`, `sky` `#6FB3FF`, `blue` `#5AA4FF`, `cyan` `#3FD3FF`, `rose` `#e5b4d4`
-- `rules`: each has `color` (palette name or any css color) and `user`, `host`, or both. `host` takes `*` and `?` globs and matches the name as typed after `ssh`, so ssh config aliases work. the innermost login decides (`sudo -i` inside `ssh ops@n1` is `root`); for it, rules are checked in order and the first match wins. your `rules` replace the default list
+- `rules`: each has `color` (palette name or any css color) and `user`, `host`, or both. `host` takes `*` and `?` globs and matches the name as typed after `ssh`, so ssh config aliases work. the innermost login decides (`sudo -i` inside `ssh deploy@web1` is `root`); for it, rules are checked in order and the first match wins. your `rules` replace the default list
 
 example: amber for user `ops`, keep the defaults:
 
