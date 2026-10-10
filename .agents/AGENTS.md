@@ -28,6 +28,7 @@ commands and ssh
 styling
 
 - `.tn-pane` carries only classes `on`, `dim`, `multi`; `data-pane` exists only on tab-bar dots. inactive panes cannot get per-pane css
+- `tern.css` replaces the whole sheet, so the window restyles on each call: call it only when the css text changes (docs say "replaces"; the restyle cost itself was not measured)
 
 testing and debugging
 
