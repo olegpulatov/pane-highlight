@@ -4,7 +4,7 @@ a copyable foundation for tern plugins: package, config, and dev commands. the e
 
 ## start
 
-copy or clone this folder. change the identity in `plugin.toml`, replace the example with your feature, and update this readme and `.agents/manifest.md`.
+copy or clone this folder. replace `tern-plugin-base` everywhere with your plugin id, replace the example with your feature, and update this readme and `.agents/manifest.md`.
 
 ```fish
 just link
@@ -27,7 +27,7 @@ example:
 { "greeting": "hi" }
 ```
 
-missing file or key -> default. reinstall and update keep the file. run `tern plugin reload` after editing.
+missing file or key -> default. reinstall and update keep the file. after editing, run `tern plugin reload`.
 
 ## develop
 

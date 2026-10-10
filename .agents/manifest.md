@@ -57,7 +57,7 @@ versioning
 - order: finish the whole change -> run tests -> lint -> format (lint and format may swap)
 - all checks run locally through `just`. no ci, no git hooks: hooks that rewrite files force agents to reread them
 - lint = `luau-lsp analyze` with the generated types; format = `stylua`
-- live check: `tern plugin reload` exits 1 when the host half fails to load. it does not see window-half failures; check those in Preferences › Plugins
+- live check: `tern plugin reload` reloads host and window halves; its exit code reports host failures, window failures show as a toast
 
 ## tests
 

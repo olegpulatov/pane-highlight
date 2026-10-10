@@ -8,7 +8,7 @@ default:
 link:
     tern plugin link .
 
-# Reload all plugins and report host load failures.
+# Reload all plugins; exits 1 on host load failures.
 reload:
     tern plugin reload
 
