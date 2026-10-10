@@ -12,7 +12,7 @@ features:
 - inactive panes: dimmed
 - rules: ordered `{user?, host?, color}`; colors are palette names or css colors; user palette entries add to the built-in one. the innermost login decides (`sudo -i` inside `ssh deploy@web1` is root); for it, the first matching rule wins
 - detection: running command line from `cx.session:pane()` and command events, split into commands at `;`, `&&`, `||`, `|` (`ssh`, `tern ssh`, `su`, `sudo`, `sudo su`; no user = root); the pane's foreground program from `tern process <pane> --json` (keeps an ssh session's target after remote commands replace the running line); remoting host name and login user from `cx.hosts`; tern's own user. checked again on focus, command start/finish and `cwd` change (leaving ssh may report no command finish)
-- cost: only the focused pane is checked (events of other panes are ignored; focus checks again); non-shell panes get no `tern process` lookup; the style sheet is installed only when the color changes
+- cost: only the focused pane is checked (events of other panes are ignored; focus checks again); panes without a program (browser, file, git, …; not terminal, agent, plugin) get no `tern process` lookup; the style sheet is installed only when the color changes
 
 limits, by tern: inactive panes have no per-pane css hook, so only the active pane takes a rule color; panes without shell integration report no command line; sudo credential caching is per terminal, so it is not detected.
 
