@@ -375,9 +375,12 @@ end
 -- The plugin cannot learn its window key, and `tern process` sees one window's panes,
 -- so it asks the first window (no `--window`; its panes have an empty key), then keys
 -- 1..MAX_WINDOWS, until one knows the pane. Bounded workaround: other keys are not reached.
+-- Each window runs its own copy of this plugin, so all its panes share one key: the first
+-- hit is remembered and asked first next time; a miss there scans again.
 -- Answers nil at once when no `tern` can start.
+local known_window: number? = nil
 local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowCx) -> ())
-	local function ask(program: string, window: number, ask_cx: WindowCx): boolean
+	local function ask(program: string, window: number, ask_cx: WindowCx, remembered: boolean): boolean
 		local args = { program, "process", tostring(pane_id), "--json" }
 		if window > 0 then
 			table.insert(args, 2, "--window")
@@ -390,11 +393,16 @@ local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowC
 			function(res: ProcessResult, next_cx: WindowCx?)
 				local now_cx = next_cx or ask_cx
 				if res.status ~= 0 then
-					if window >= MAX_WINDOWS or not ask(program, window + 1, now_cx) then
+					local next_window = if remembered then 0 else window + 1
+					if remembered then
+						known_window = nil
+					end
+					if next_window > MAX_WINDOWS or not ask(program, next_window, now_cx, false) then
 						done(nil, now_cx)
 					end
 					return
 				end
+				known_window = window
 				local ok_json, data = pcall(tern.json.decode, res.stdout)
 				local fg = ok_json and type(data) == "table" and data.foreground
 				local argv = type(fg) == "table" and fg.argv
@@ -403,7 +411,9 @@ local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowC
 		)
 	end
 	for _, program in TERN_PROGRAMS do
-		if (program == "tern" or tern.fs.exists(program)) and ask(program, 0, cx) then
+		if
+			(program == "tern" or tern.fs.exists(program)) and ask(program, known_window or 0, cx, known_window ~= nil)
+		then
 			return
 		end
 	end
