@@ -30,7 +30,7 @@ keep it readable and maintainable for future contributors. code, tooling, and do
 
 - plugin package: `plugin.toml` + luau entry file(s), `--!strict`, at repo root
 - user config: defaults in code, optional user file overrides them
-- justfile: link, reload, types, test, lint, fmt, bump
+- justfile: link, reload, edit-config, types, test, lint, fmt, bump
 - offline check: optional `check.lua` with a fake `tern`, run by stock lua. it never shapes the plugin code: when the entry file needs luau-only features, delete the check and verify live
 - texts: `README.md` (what, install, config), `LICENSE`, `.agents/AGENTS.md`, this manifest
 - tern awareness: agent rules point to public tern docs (https://docs.stencil.so/tern/), `tern help`, generated api types
