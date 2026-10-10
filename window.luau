@@ -459,6 +459,12 @@ tern.on("command_finished", function(ev, cx)
 	update(cx, ev.pane)
 end)
 
+-- Leaving ssh may report no command_finished (the remote shell's commands replaced it);
+-- the pane's directory changes back, so check again then.
+tern.on("cwd", function(ev, cx)
+	update(cx, ev.pane)
+end)
+
 tern.on("pane_closed", function(ev, cx)
 	pane_color[ev.pane] = nil
 	generation[ev.pane] = nil
