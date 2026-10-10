@@ -15,7 +15,27 @@ features:
 - rules: ordered `{user?, host?, color}`, first match wins; colors are palette names or css colors; user palette entries add to the built-in one
 - detection, window-scoped only: running command line from `cx.session:pane()` and command events, split into commands at `;`, `&&`, `||`, `|` (`ssh`, `tern ssh`, `su`, `sudo`, `sudo su`; no user = root), remoting host name and login user from `cx.hosts`, tern's own user. no `tern process` lookup: the plugin cannot learn its window key, so that cli reads the wrong window
 
-limits, by tern: inactive panes have no per-pane css hook, so only the active pane takes a rule color; only the outermost command in a pane is seen; panes without shell integration report no command line; sudo credential caching is per terminal, so it is not detected.
+limits, by tern: inactive panes have no per-pane css hook, so only the active pane takes a rule color; panes without shell integration report no command line; sudo credential caching is per terminal, so it is not detected.
+
+## open work
+
+bug: `ssh ops@n1` flashes the rule color, then falls back to accent. live trace in a pane with shell integration on the remote host:
+
+- while ssh starts: `running.line = "ssh ops@n1"`, title `ssh ops@n1 …`
+- remote prompt up: title `[n1] ~`, cwd `/home/ops`; running still the ssh line at first
+- first remote command (`true`): running becomes nil, `last.line = "true"`. the remote shell's own command events replace the ssh context
+- the flash itself is likely a `command_finished` for the ssh line when the remote prompt appears; not yet confirmed: the start/finish trace did not run
+- root "works" only because `sudo -i` typed on n1 is itself a remote command line; it will drop the same way after the first command in the root shell
+- `[host]` title prefix comes from tern's ssh-hop tracking (OSC 7); it carries the host, not the user
+
+fix direction, not decided: remember the target per pane when an ssh/su/sudo-shell command starts, and keep it while the pane is inside that hop instead of trusting `running.line` alone. candidate lifetime signals to check in a trace: the `[host]` title prefix, `cx.session:pane().program` (earlier showed `ssh` for an ssh pane), local cwd returning. next step: trace start/finish/cwd/title events plus `program` while doing `ssh ops@n1`, a remote command, `exit`; same for `sudo -i` on the remote. the user left two test panes in window `--window 2` (ops at `[n1] ~`, root via `sudo -i`); test there only, never in window 1
+
+requested, not yet done:
+
+- default `border` 1px instead of 2px
+- gentler red for the default `root` rule; add palette names `magma` `#FF7A3D` and `ember` `#b84a2c` (user named them magmaOrange and emberRed)
+
+testing notes: offline matcher check lives outside the repo (`/tmp/ph-test/`: fake `tern` prelude + `window.luau` + cases, run with `luau`); lint needs `luau-lsp` on PATH (downloaded to `/tmp/luau-lsp/`). css rendering can be checked without touching user windows: `tern serve --control SOCK`, `tern ctl --control SOCK css pane-highlight FILE`, `split right`, `dump SELECTOR`, `appearance dark`, `shot NAME`
 
 styling relies on tern's internal pane selectors (`.tn-pane.on`, `.tn-body`, `.tn-veil`); they are undocumented and may change between tern versions.
 
