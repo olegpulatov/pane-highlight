@@ -10,7 +10,7 @@ out of the box: `root` ember, `prod-*` hosts red, `dev-*` hosts mint.
 
 what a rule sees:
 
-- the command line running in the pane, from tern's shell integration: `ssh [user@]host`, `ssh -l user host`, `tern ssh …`, `su [user]`, `sudo [-u user] …`, `sudo su …`. `su` and `sudo` without a user mean `root`; `sudo -k`/`sudo -v` alone mean nothing. each command of `a; b && c | d` counts
+- the command line running in the pane, from tern's shell integration: `ssh [user@]host`, `tern ssh …`, `su [user]`, `sudo [-u user] …`. `su` and `sudo` without a user mean `root`
 - the pane's foreground program, from `tern process`: an `ssh ops@n1` session counts for its whole length, also after commands typed on the remote machine
 - tern remoting: the host name and login user of a remote pane
 - tern's own user, for local panes
@@ -70,7 +70,7 @@ example: amber for user `ops`, keep the defaults:
 {
   "rules": [
     { "user": "ops", "color": "amber" },
-    { "user": "root", "color": "red" },
+    { "user": "root", "color": "ember" },
     { "host": "prod-*", "color": "red" },
     { "host": "dev-*", "color": "mint" }
   ]
@@ -84,23 +84,14 @@ missing file or key -> default. a broken file stops the plugin with an error toa
 install `tern`, `just`, lua, `luau-lsp`, and `stylua` with luau support. run `just` for available commands.
 
 ```fish
-just test
 just lint
 just fmt
 ```
 
-no tests are included yet. lint generates current tern api types and checks plugin source; format covers lua/luau files. generated types are not committed.
+lint generates current tern api types and checks plugin source; format covers lua/luau files. generated types are not committed. there are no automated tests: the plugin uses luau-only syntax, so check changes live with `tern plugin reload`.
 
 `just bump` bumps patch; `just bump minor` and `just bump major` pick another part. only `plugin.toml` holds the version.
 
-## publish
+## license
 
-keep `plugin.toml` at the repository root. users install with:
-
-```fish
-tern plugin install github.com/OWNER/REPO
-```
-
-use `tern plugin install .` for a local copy, and `--force` to update an installed copy. users only need tern.
-
-mit license. retain the notice for reused code.
+mit, see `LICENSE`.

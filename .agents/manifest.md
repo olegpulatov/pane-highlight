@@ -2,8 +2,6 @@
 
 source of truth for goals and decisions. agents check their work against it and discuss core changes with the owner before applying them.
 
-in a plugin made from this base: replace "what it is" with the plugin's own purpose and features; the other sections stay as shared rules until changed.
-
 ## what it is
 
 tern window plugin that marks the active pane in split views and recolors it while it works as a given user or on a given host. made to be shared as open source: published defaults are universal (`root`, `prod-*`, `dev-*`); personal rules live in each user's `config.json`.
@@ -12,17 +10,17 @@ features:
 
 - active pane: inset border and a tint of the accent color over the terminal background, tint % separate for light and dark appearance (`light-dark()`)
 - inactive panes: dimmed
-- rules: ordered `{user?, host?, color}`, first match wins; colors are palette names or css colors; user palette entries add to the built-in one
-- detection: running command line from `cx.session:pane()` and command events, split into commands at `;`, `&&`, `||`, `|` (`ssh`, `tern ssh`, `su`, `sudo`, `sudo su`; no user = root); the pane's foreground program from `tern process <pane> --json` (keeps an ssh session's target after remote commands replace the running line); remoting host name and login user from `cx.hosts`; tern's own user. innermost target wins
+- rules: ordered `{user?, host?, color}`; colors are palette names or css colors; user palette entries add to the built-in one. the innermost login decides (`sudo -i` inside `ssh ops@n1` is root); for it, the first matching rule wins
+- detection: running command line from `cx.session:pane()` and command events, split into commands at `;`, `&&`, `||`, `|` (`ssh`, `tern ssh`, `su`, `sudo`, `sudo su`; no user = root); the pane's foreground program from `tern process <pane> --json` (keeps an ssh session's target after remote commands replace the running line); remoting host name and login user from `cx.hosts`; tern's own user. checked again on focus, command start/finish and `cwd` change (leaving ssh may report no command finish)
 
 limits, by tern: inactive panes have no per-pane css hook, so only the active pane takes a rule color; panes without shell integration report no command line; sudo credential caching is per terminal, so it is not detected.
 
 ## open work
 
-- the window half cannot learn its window key (`TERN_WINDOW_KEY` is unset in the VM, no api field), and `tern process` without `--window` asks the first window. workaround: ask `--window 1..MAX_WINDOWS` until status 0; verified live in window 2. bug report for tern: expose the window key to window halves
+- the window half cannot learn its window key (`TERN_WINDOW_KEY` is unset in the VM, no api field), and `tern process` without `--window` asks the first window. workaround approved by the owner: ask `--window 1..MAX_WINDOWS` until status 0. assumes small numeric keys and pane ids that differ across windows; neither is documented. drop it when tern exposes the window key (bug report to file)
 - hypotheses, not verified: the ssh flash came from a `command_finished`; a remote `sudo -i` loses root color after the first command in the root shell; the `[host]` title prefix comes from OSC 7
 
-testing notes: offline matcher check lives outside the repo (`/tmp/ph-test/`: fake `tern` prelude + `window.luau` + cases, run with `luau`); lint needs `luau-lsp` on PATH (downloaded to `/tmp/luau-lsp/`). css rendering can be checked without touching user windows: `tern serve --control SOCK`, `tern ctl --control SOCK css pane-highlight FILE`, `split right`, `dump SELECTOR`, `appearance dark`, `shot NAME`
+testing: the plugin uses luau-only syntax, so there is no `check.lua`; verify live with `tern plugin reload` in a test window. css rendering can be checked without touching user windows: `tern serve --control SOCK`, `tern ctl --control SOCK css pane-highlight FILE`, `split right`, `dump SELECTOR`, `appearance dark`, `shot NAME`
 
 styling relies on tern's internal pane selectors (`.tn-pane.on`, `.tn-body`, `.tn-veil`); they are undocumented and may change between tern versions.
 
@@ -44,7 +42,6 @@ layout
 - one plugin per repo, package at repo root -> `tern plugin install github.com/OWNER/REPO` works with no path
 - copy, not dependency: nothing from this repo is loaded at run time, so plugins never break when the base changes
 - portable: runs wherever tern runs plugins (macos, linux, windows; window half also on ios). no owner-specific paths, nothing depends on files around the repo. paths from tern apis are fine
-- the example feature is tiny and lives in the entry file only. a new plugin replaces it; no example tests or docs to clean up
 
 code
 
