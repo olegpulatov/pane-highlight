@@ -6,7 +6,7 @@
 -- Defaults; config.json in the plugin data folder overrides them.
 local DEFAULT_TINT_LIGHT = 7 -- % of the color mixed into the terminal background
 local DEFAULT_TINT_DARK = 3
-local DEFAULT_BORDER = 2 -- px, 0 = none
+local DEFAULT_BORDER = 1 -- px, 0 = none
 local DEFAULT_DIM = 0.3 -- veil opacity over inactive panes, 0 = off
 local DEFAULT_COLOR = "var(--accent)"
 local PALETTE: { [string]: string } = {
@@ -18,15 +18,20 @@ local PALETTE: { [string]: string } = {
 	blue = "#5AA4FF",
 	cyan = "#3FD3FF",
 	rose = "#e5b4d4",
+	magma = "#FF7A3D",
+	ember = "#b84a2c",
 }
 type Rule = { user: string?, host: string?, color: string }
 local DEFAULT_RULES: { Rule } = {
-	{ user = "root", color = "red" },
+	{ user = "root", color = "ember" },
 	{ host = "prod-*", color = "red" },
 	{ host = "dev-*", color = "mint" },
 }
 
 local CONFIG_MAX_BYTES = 64 * 1024
+local LOOKUP_TIMEOUT_MS = 1500
+-- An app started from the Dock may not have `tern` on its PATH.
+local TERN_PROGRAMS = { "tern", "/Applications/Tern.app/Contents/MacOS/tern", "/usr/bin/tern" }
 -- Options taking a value, so their value is not taken for the destination or command.
 local SSH_VALUE_OPTS = "BbcDEeFIiJLlmOoPpQRSWw"
 local SUDO_VALUE_OPTS: { [string]: boolean } = {
@@ -301,16 +306,16 @@ local function rule_matches(rule: Rule, t: Target): boolean
 	return true
 end
 
--- First rule matching any target wins.
-local function color_for(targets: { Target }): string
-	for _, rule in rules do
-		for _, t in targets do
+-- The first target that matches a rule decides; targets come innermost first.
+local function color_for(targets: { Target }): string?
+	for _, t in targets do
+		for _, rule in rules do
 			if rule_matches(rule, t) then
 				return colors[rule.color] or rule.color
 			end
 		end
 	end
-	return DEFAULT_COLOR
+	return nil
 end
 
 -- Style ---------------------------------------------------------------------
@@ -344,6 +349,9 @@ end
 
 -- Panes ---------------------------------------------------------------------
 
+local pane_color: { [number]: string } = {}
+local generation: { [number]: number } = {}
+
 -- Who the pane's machine logs in as: Tern remoting hop, else Tern's own user.
 local function host_target(cx: WindowCx, pane_id: number): Target
 	for _, host in cx.hosts:list() do
@@ -356,50 +364,92 @@ local function host_target(cx: WindowCx, pane_id: number): Target
 	return { user = tern.getenv("USER") or tern.getenv("LOGNAME") }
 end
 
--- line: the running command line when known (events), "" for none, nil to read it from the pane.
-local function update(cx: WindowCx, line: string?)
-	local pane_id = cx.session:focused()
-	if not pane_id then
-		set_style(DEFAULT_COLOR)
-		return
+-- The pane's foreground program (`ssh ops@n1` for a whole ssh session), from `tern process`.
+-- Answers nil at once when no `tern` can start.
+local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowCx) -> ())
+	for _, program in TERN_PROGRAMS do
+		if program == "tern" or tern.fs.exists(program) then
+			local ok = pcall(
+				tern.process.run,
+				{ program, "process", tostring(pane_id), "--json" } :: { string },
+				{ timeout_ms = LOOKUP_TIMEOUT_MS },
+				function(res: ProcessResult, next_cx: WindowCx?)
+					local ok_json, data = pcall(tern.json.decode, res.stdout)
+					local fg = res.status == 0 and ok_json and type(data) == "table" and data.foreground
+					local argv = type(fg) == "table" and fg.argv
+					done(if type(argv) == "table" then targets_of(argv, 1) else nil, next_cx or cx)
+				end
+			)
+			if ok then
+				return
+			end
+		end
 	end
-	local targets = { host_target(cx, pane_id) }
+	done(nil, cx)
+end
+
+local function apply(cx: WindowCx, pane_id: number, color: string)
+	pane_color[pane_id] = color
+	if cx.session:focused() == pane_id then
+		set_style(color)
+	end
+end
+
+-- line: the command line just started (event); nil reads the pane's running line.
+local function update(cx: WindowCx, pane_id: number, line: string?)
+	generation[pane_id] = (generation[pane_id] or 0) + 1
+	local gen = generation[pane_id]
 	if line == nil then
 		local info = cx.session:pane(pane_id)
 		line = info and info.running and info.running.line
 	end
-	if line then
-		for _, t in line_targets(line) do
-			table.insert(targets, 1, t)
-		end
+	-- A running `sudo -i` or `ssh root@…` decides at once.
+	local color = line and color_for(line_targets(line))
+	if color then
+		apply(cx, pane_id, color)
+		return
 	end
-	set_style(color_for(targets))
+	foreground(pane_id, cx, function(found, next_cx)
+		if gen == generation[pane_id] then
+			local targets = { host_target(next_cx, pane_id) }
+			if found then
+				table.insert(targets, 1, found)
+			end
+			apply(next_cx, pane_id, color_for(targets) or DEFAULT_COLOR)
+		end
+	end)
+end
+
+local function focus(cx: WindowCx)
+	local pane_id = cx.session:focused()
+	set_style(pane_id and pane_color[pane_id] or DEFAULT_COLOR)
+	if pane_id then
+		update(cx, pane_id)
+	end
 end
 
 tern.timer(0, function(cx)
 	if cx then
-		update(cx)
+		focus(cx)
 	else
 		set_style(DEFAULT_COLOR)
 	end
 end)
 
 tern.on("focus", function(_ev, cx)
-	update(cx)
+	focus(cx)
 end)
 
 tern.on("command_started", function(ev, cx)
-	if ev.pane == cx.session:focused() then
-		update(cx, ev.line)
-	end
+	update(cx, ev.pane, ev.line)
 end)
 
 tern.on("command_finished", function(ev, cx)
-	if ev.pane == cx.session:focused() then
-		update(cx, "")
-	end
+	update(cx, ev.pane)
 end)
 
-tern.on("pane_closed", function(_ev, cx)
-	update(cx)
+tern.on("pane_closed", function(ev, cx)
+	pane_color[ev.pane] = nil
+	generation[ev.pane] = nil
+	focus(cx)
 end)

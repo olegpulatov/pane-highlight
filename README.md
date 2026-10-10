@@ -4,20 +4,21 @@ a tern plugin that marks the active pane in split views and recolors it while it
 
 - active pane: border and a light tint of the accent color
 - other panes: dimmed
-- rules: while the active pane runs `ssh root@…`, `ssh prod-1`, `sudo …` or `su`, border and tint take the rule's color; back to accent when the command ends or focus moves
+- rules: while the active pane works as a matching user or on a matching host, border and tint take the rule's color; back to accent when the session ends or focus moves
 
-out of the box: `root` and `prod-*` hosts red, `dev-*` hosts mint.
+out of the box: `root` ember, `prod-*` hosts red, `dev-*` hosts mint.
 
 what a rule sees:
 
 - the command line running in the pane, from tern's shell integration: `ssh [user@]host`, `ssh -l user host`, `tern ssh …`, `su [user]`, `sudo [-u user] …`, `sudo su …`. `su` and `sudo` without a user mean `root`; `sudo -k`/`sudo -v` alone mean nothing. each command of `a; b && c | d` counts
+- the pane's foreground program, from `tern process`: an `ssh ops@n1` session counts for its whole length, also after commands typed on the remote machine
 - tern remoting: the host name and login user of a remote pane
 - tern's own user, for local panes
 
 limits:
 
-- only the outermost command is seen: inside `ssh prod-1`, a `su` typed on the remote machine does not change the color
-- panes without shell integration report no command line, so a pane started directly as `ssh …` keeps the accent color
+- inside an ssh session, a remote `sudo -i` or `su` counts only while tern's shell integration on the remote machine reports it as the running command
+- `tern process` must be on PATH or at its default install path; without it, only the running command line counts
 - only the active pane gets the rule color; tern gives inactive panes no per-pane style hook
 - sudo's cached password ("no password for 5 minutes") is per terminal and not visible to plugins; a prompt module such as starship's `sudo` shows it
 
@@ -45,11 +46,11 @@ defaults:
 ```json
 {
   "tint": { "light": 7, "dark": 3 },
-  "border": 2,
+  "border": 1,
   "dim": 0.3,
   "colors": {},
   "rules": [
-    { "user": "root", "color": "red" },
+    { "user": "root", "color": "ember" },
     { "host": "prod-*", "color": "red" },
     { "host": "dev-*", "color": "mint" }
   ]
@@ -59,8 +60,8 @@ defaults:
 - `tint`: % of the color mixed into the terminal background, per theme appearance. dark themes need less
 - `border`: border width in px, 0 = none. its color follows the tint color
 - `dim`: veil opacity over inactive panes, 0 = no dimming
-- `colors`: your own named colors; they add to or replace the built-in palette: `amber` `#F2B04C`, `red` `#E85B5B`, `sage` `#6a9a6a`, `mint` `#35C28A`, `sky` `#6FB3FF`, `blue` `#5AA4FF`, `cyan` `#3FD3FF`, `rose` `#e5b4d4`
-- `rules`: checked in order, first match wins. each has `color` (palette name or any css color) and `user`, `host`, or both. `host` takes `*` and `?` globs and matches the name as typed after `ssh`, so ssh config aliases work. your `rules` replace the default list
+- `colors`: your own named colors; they add to or replace the built-in palette: `amber` `#F2B04C`, `red` `#E85B5B`, `magma` `#FF7A3D`, `ember` `#b84a2c`, `sage` `#6a9a6a`, `mint` `#35C28A`, `sky` `#6FB3FF`, `blue` `#5AA4FF`, `cyan` `#3FD3FF`, `rose` `#e5b4d4`
+- `rules`: each has `color` (palette name or any css color) and `user`, `host`, or both. `host` takes `*` and `?` globs and matches the name as typed after `ssh`, so ssh config aliases work. the innermost login decides (`sudo -i` inside `ssh ops@n1` is `root`); for it, rules are checked in order and the first match wins. your `rules` replace the default list
 
 example: amber for user `ops`, keep the defaults:
 
