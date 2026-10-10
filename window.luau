@@ -435,8 +435,8 @@ local function update(cx: WindowCx, pane_id: number, line: string?)
 		apply(cx, pane_id, color)
 		return
 	end
-	-- Browser, file and other non-shell panes run no ssh: no lookup.
-	if not info or info.kind ~= "terminal" then
+	-- Only terminal, agent and plugin panes run a program; browser, file and the rest have no ssh.
+	if not info or (info.kind ~= "terminal" and info.kind ~= "agent" and info.kind ~= "plugin") then
 		apply(cx, pane_id, color_for({ host_target(cx, pane_id) }) or DEFAULT_COLOR)
 		return
 	end
