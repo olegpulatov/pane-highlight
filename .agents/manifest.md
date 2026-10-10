@@ -19,7 +19,7 @@ limits, by tern: inactive panes have no per-pane css hook, so only the active pa
 
 ## open work
 
-- `tern process <pane>` without `--window` asks window 1. in the agent's test window 2 it answered `no block is called <pane>`; the user reports it works in a window they create. not explained; the plugin has no window key to pass
+- the window half cannot learn its window key (`TERN_WINDOW_KEY` is unset in the VM, no api field), and `tern process` without `--window` asks the first window. workaround: ask `--window 1..MAX_WINDOWS` until status 0; verified live in window 2. bug report for tern: expose the window key to window halves
 - hypotheses, not verified: the ssh flash came from a `command_finished`; a remote `sudo -i` loses root color after the first command in the root shell; the `[host]` title prefix comes from OSC 7
 
 testing notes: offline matcher check lives outside the repo (`/tmp/ph-test/`: fake `tern` prelude + `window.luau` + cases, run with `luau`); lint needs `luau-lsp` on PATH (downloaded to `/tmp/luau-lsp/`). css rendering can be checked without touching user windows: `tern serve --control SOCK`, `tern ctl --control SOCK css pane-highlight FILE`, `split right`, `dump SELECTOR`, `appearance dark`, `shot NAME`

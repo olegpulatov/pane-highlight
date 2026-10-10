@@ -30,6 +30,7 @@ local DEFAULT_RULES: { Rule } = {
 
 local CONFIG_MAX_BYTES = 64 * 1024
 local LOOKUP_TIMEOUT_MS = 1500
+local MAX_WINDOWS = 9 -- window keys tried by `tern process --window N`
 -- An app started from the Dock may not have `tern` on its PATH.
 local TERN_PROGRAMS = { "tern", "/Applications/Tern.app/Contents/MacOS/tern", "/usr/bin/tern" }
 -- Options taking a value, so their value is not taken for the destination or command.
@@ -365,24 +366,34 @@ local function host_target(cx: WindowCx, pane_id: number): Target
 end
 
 -- The pane's foreground program (`ssh ops@n1` for a whole ssh session), from `tern process`.
+-- The plugin cannot learn its window key, and `tern process` sees one window's panes,
+-- so it asks window keys 1..MAX_WINDOWS until one knows the pane. Bounded workaround:
+-- other window keys are not reached.
 -- Answers nil at once when no `tern` can start.
 local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowCx) -> ())
-	for _, program in TERN_PROGRAMS do
-		if program == "tern" or tern.fs.exists(program) then
-			local ok = pcall(
-				tern.process.run,
-				{ program, "process", tostring(pane_id), "--json" } :: { string },
-				{ timeout_ms = LOOKUP_TIMEOUT_MS },
-				function(res: ProcessResult, next_cx: WindowCx?)
-					local ok_json, data = pcall(tern.json.decode, res.stdout)
-					local fg = res.status == 0 and ok_json and type(data) == "table" and data.foreground
-					local argv = type(fg) == "table" and fg.argv
-					done(if type(argv) == "table" then targets_of(argv, 1) else nil, next_cx or cx)
+	local function ask(program: string, window: number, ask_cx: WindowCx): boolean
+		return pcall(
+			tern.process.run,
+			{ program, "process", "--window", tostring(window), tostring(pane_id), "--json" } :: { string },
+			{ timeout_ms = LOOKUP_TIMEOUT_MS },
+			function(res: ProcessResult, next_cx: WindowCx?)
+				local now_cx = next_cx or ask_cx
+				if res.status ~= 0 then
+					if window >= MAX_WINDOWS or not ask(program, window + 1, now_cx) then
+						done(nil, now_cx)
+					end
+					return
 				end
-			)
-			if ok then
-				return
+				local ok_json, data = pcall(tern.json.decode, res.stdout)
+				local fg = ok_json and type(data) == "table" and data.foreground
+				local argv = type(fg) == "table" and fg.argv
+				done(if type(argv) == "table" then targets_of(argv, 1) else nil, now_cx)
 			end
+		)
+	end
+	for _, program in TERN_PROGRAMS do
+		if (program == "tern" or tern.fs.exists(program)) and ask(program, 1, cx) then
+			return
 		end
 	end
 	done(nil, cx)

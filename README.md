@@ -19,6 +19,7 @@ limits:
 
 - inside an ssh session, a remote `sudo -i` or `su` counts only while tern's shell integration on the remote machine reports it as the running command
 - `tern process` must be on PATH or at its default install path; without it, only the running command line counts
+- a plugin cannot learn its own window key, so the lookup asks window keys 1 to 9 in turn. panes in a window with another key keep only the running command line
 - only the active pane gets the rule color; tern gives inactive panes no per-pane style hook
 - sudo's cached password ("no password for 5 minutes") is per terminal and not visible to plugins; a prompt module such as starship's `sudo` shows it
 
