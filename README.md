@@ -19,7 +19,7 @@ limits:
 
 - inside an ssh session, a remote `sudo -i` or `su` counts only while tern's shell integration on the remote machine reports it as the running command
 - `tern process` must be on PATH or at its default install path; without it, only the running command line counts
-- a plugin cannot learn its own window key, so the lookup asks window keys 1 to 9 in turn. panes in a window with another key keep only the running command line
+- a plugin cannot learn its own window key, so the lookup asks the first window, then window keys 1 to 9. panes in a window with another key keep only the running command line
 - only the active pane gets the rule color; tern gives inactive panes no per-pane style hook
 - sudo's cached password ("no password for 5 minutes") is per terminal and not visible to plugins; a prompt module such as starship's `sudo` shows it
 
@@ -35,9 +35,9 @@ for a local checkout: `just link`. tern loads the checkout directly; `tern plugi
 
 ## config
 
-defaults live at the top of `window.luau`. to change them without editing code, create `config.json` in the plugin's data folder:
+defaults live at the top of `window.luau`. to change them without editing code, create `config.json` in the plugin's data folder. from a checkout, `just edit-config` opens it in `$EDITOR`.
 
-- macos: `~/Library/Application Support/Tern/plugin-data/pane-highlight/config.json`
+- macos: `~/Library/Application\ Support/Tern/plugin-data/pane-highlight/config.json`
 - linux: `$XDG_STATE_HOME/tern/plugin-data/pane-highlight/config.json` (default `~/.local/state/tern/...`)
 - windows: `%LOCALAPPDATA%\Tern\plugin-data\pane-highlight\config.json`
 - with `TERN_CONFIG_DIR` set: `$TERN_CONFIG_DIR/plugin-data/pane-highlight/config.json`
@@ -46,7 +46,7 @@ defaults:
 
 ```json
 {
-  "tint": { "light": 7, "dark": 3 },
+  "tint": { "light": 3, "dark": 5 },
   "border": 1,
   "dim": 0.3,
   "colors": {},
@@ -58,7 +58,7 @@ defaults:
 }
 ```
 
-- `tint`: % of the color mixed into the terminal background, per theme appearance. dark themes need less
+- `tint`: % of the color mixed into the terminal background, separate for light and dark themes
 - `border`: border width in px, 0 = none. its color follows the tint color
 - `dim`: veil opacity over inactive panes, 0 = no dimming
 - `colors`: your own named colors; they add to or replace the built-in palette: `amber` `#F2B04C`, `red` `#E85B5B`, `magma` `#FF7A3D`, `ember` `#b84a2c`, `sage` `#6a9a6a`, `mint` `#35C28A`, `sky` `#6FB3FF`, `blue` `#5AA4FF`, `cyan` `#3FD3FF`, `rose` `#e5b4d4`
@@ -80,6 +80,8 @@ example: amber for user `ops`, keep the defaults:
 missing file or key -> default. a broken file stops the plugin with an error toast that names the problem. reinstall and update keep the file. after editing, run `tern plugin reload`.
 
 ## develop
+
+`.agents/manifest.md` is the main spec: goals, features, decisions and rules for code, config and tests. read it before changing behavior; `.agents/AGENTS.md` lists tern quirks met so far.
 
 install `tern`, `just`, lua, `luau-lsp`, and `stylua` with luau support. run `just` for available commands.
 

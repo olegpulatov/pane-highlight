@@ -17,7 +17,7 @@ limits, by tern: inactive panes have no per-pane css hook, so only the active pa
 
 ## open work
 
-- the window half cannot learn its window key (`TERN_WINDOW_KEY` is unset in the VM, no api field), and `tern process` without `--window` asks the first window. workaround approved by the owner: ask `--window 1..MAX_WINDOWS` until status 0. assumes small numeric keys and pane ids that differ across windows; neither is documented. drop it when tern exposes the window key (bug report to file)
+- the window half cannot learn its window key (`TERN_WINDOW_KEY` is unset in the VM, no api field), and `tern process` without `--window` asks the first window. workaround approved by the owner: ask without `--window`, then `--window 1..MAX_WINDOWS`, until status 0. assumes small numeric keys and pane ids that differ across windows; neither is documented. drop it when tern exposes the window key (bug report to file)
 - hypotheses, not verified: the ssh flash came from a `command_finished`; a remote `sudo -i` loses root color after the first command in the root shell; the `[host]` title prefix comes from OSC 7
 
 testing: the plugin uses luau-only syntax, so there is no `check.lua`; verify live with `tern plugin reload` in a test window. css rendering can be checked without touching user windows: `tern serve --control SOCK`, `tern ctl --control SOCK css pane-highlight FILE`, `split right`, `dump SELECTOR`, `appearance dark`, `shot NAME`

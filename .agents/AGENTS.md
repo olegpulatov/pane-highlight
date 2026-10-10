@@ -12,7 +12,8 @@ windows and the cli
 
 - a window half does not know its window key: `tern.getenv("TERN_WINDOW_KEY")` is nil (it reads the daemon's env) and no api field has it
 - every `tern` verb works on one window: `--window KEY`, else `$TERN_WINDOW_KEY`, else the first window. a `tern` spawned by `tern.process.run` or from an agent shell without that variable hits the first window
-- a pane of another window, or an unknown window key, gives the same error: `no block is called <id>`, status 1. so the plugin tries `--window 1..9` until status 0
+- a pane of another window, or an unknown window key, gives the same error: `no block is called <id>`, status 1
+- the first window's panes have an empty `TERN_WINDOW_KEY` and are reached only without `--window` (`--window 1` is not it). windows opened later had keys like `2`. so the plugin asks without `--window`, then `--window 1..9`, until status 0
 - pane ids differed across windows in every check; the docs do not promise it
 - `tern split ... --json` prints `{session, tab, block}`: the new id is `block`, not `id`
 

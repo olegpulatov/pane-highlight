@@ -4,8 +4,8 @@
 -- user or on a given host (ssh, su, sudo, Tern remoting).
 
 -- Defaults; config.json in the plugin data folder overrides them.
-local DEFAULT_TINT_LIGHT = 7 -- % of the color mixed into the terminal background
-local DEFAULT_TINT_DARK = 3
+local DEFAULT_TINT_LIGHT = 3 -- % of the color mixed into the terminal background
+local DEFAULT_TINT_DARK = 5
 local DEFAULT_BORDER = 1 -- px, 0 = none
 local DEFAULT_DIM = 0.3 -- veil opacity over inactive panes, 0 = off
 local DEFAULT_COLOR = "var(--accent)"
@@ -367,14 +367,19 @@ end
 
 -- The pane's foreground program (`ssh deploy@web1` for a whole ssh session), from `tern process`.
 -- The plugin cannot learn its window key, and `tern process` sees one window's panes,
--- so it asks window keys 1..MAX_WINDOWS until one knows the pane. Bounded workaround:
--- other window keys are not reached.
+-- so it asks the first window (no `--window`; its panes have an empty key), then keys
+-- 1..MAX_WINDOWS, until one knows the pane. Bounded workaround: other keys are not reached.
 -- Answers nil at once when no `tern` can start.
 local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowCx) -> ())
 	local function ask(program: string, window: number, ask_cx: WindowCx): boolean
+		local args = { program, "process", tostring(pane_id), "--json" }
+		if window > 0 then
+			table.insert(args, 2, "--window")
+			table.insert(args, 3, tostring(window))
+		end
 		return pcall(
 			tern.process.run,
-			{ program, "process", "--window", tostring(window), tostring(pane_id), "--json" } :: { string },
+			args :: { string },
 			{ timeout_ms = LOOKUP_TIMEOUT_MS },
 			function(res: ProcessResult, next_cx: WindowCx?)
 				local now_cx = next_cx or ask_cx
@@ -392,7 +397,7 @@ local function foreground(pane_id: number, cx: WindowCx, done: (Target?, WindowC
 		)
 	end
 	for _, program in TERN_PROGRAMS do
-		if (program == "tern" or tern.fs.exists(program)) and ask(program, 1, cx) then
+		if (program == "tern" or tern.fs.exists(program)) and ask(program, 0, cx) then
 			return
 		end
 	end
