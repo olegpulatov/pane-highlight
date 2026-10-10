@@ -11,15 +11,18 @@ out of the box: `root` ember, `prod-*` hosts red, `dev-*` hosts mint.
 what a rule sees:
 
 - the command line running in the pane, from tern's shell integration: `ssh [user@]host`, `tern ssh …`, `su [user]`, `sudo [-u user] …`. `su` and `sudo` without a user mean `root`
+- logins typed in the pane before: in `ssh a`, then `ssh b` on `a`, the pane keeps `b`'s color after the first command there. `exit`, `logout`, a failed login, or a return to the directory a login was typed in ends that login
 - the pane's foreground program, from `tern process`: an `ssh deploy@web1` session counts for its whole length, also after commands typed on the remote machine
 - tern remoting: the host name and login user of a remote pane
 - tern's own user, for local panes
 
 limits:
 
-- inside an ssh session, a remote `sudo -i` or `su` counts only while tern's shell integration on the remote machine reports it as the running command
+- leaving a nested login with Ctrl-D is seen only when the shell below reports another directory. between two hosts that both sit in the same directory (often the home folder), the pane keeps the inner color until a later change. where `tern process` finds the pane, the color resets once the pane's own shell is back; where it does not, a stale color can stay even at the local shell until a plugin reload
+- logins are remembered only while the pane is active, and a plugin reload forgets them
+- inside an ssh session, a remote `sudo -i` or `su` counts while it is the running command or after it was typed in the active pane
 - `tern process` must be on PATH or at its default install path; without it, only the running command line counts
-- a plugin cannot learn its own window key, so the lookup asks the first window, then window keys 1 to 9. panes in a window with another key keep only the running command line
+- a plugin cannot learn its own window key, so the lookup asks the first window, then window keys 1 to 9. panes it cannot find (another window key; on tern 0.7.2 also panes whose id tern rejects) rely on command lines and remembered logins only
 - only the active pane gets the rule color; tern gives inactive panes no per-pane style hook
 - sudo's cached password ("no password for 5 minutes") is per terminal and not visible to plugins; a prompt module such as starship's `sudo` shows it
 

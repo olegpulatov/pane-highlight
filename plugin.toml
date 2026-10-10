@@ -1,6 +1,6 @@
 schema = 1
 id = "pane-highlight"
 name = "Pane Highlight"
-version = "0.1.6"
+version = "0.1.7"
 description = "Marks the active pane with a thin border and tint, dims the rest, and recolors it while it works as a chosen user or on a chosen host."
 window = "window.luau"

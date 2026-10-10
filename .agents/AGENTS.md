@@ -16,13 +16,16 @@ windows and the cli
 - the first window's panes have an empty `TERN_WINDOW_KEY` and are reached only without `--window` (`--window 1` is not it). windows opened later had keys like `2`. so the plugin asks without `--window`, then `--window 1..9`, until status 0
 - pane ids differed across windows in every check; the docs do not promise it
 - `tern split ... --json` prints `{session, tab, block}`: the new id is `block`, not `id`
+- tern 0.7.2 (5d1cc64), proven: in windows 2 and 3, `cx.session:pane(cx.session:focused())` is nil; `cx.session:pane("@focused")` and `cx.session:panes()` list the same id. example: window half `6180457938948` (0x59f00000004), cli `23772643983364` (0x159f00000004), and `tern process --window 2 6180457938948` says `no block is called`. a cli/window id difference alone is documented (remote host tag moved from bit 56 to bit 44, `docs/tern/concepts/runtime.md`); the nil round trip is the defect. hypotheses, not verified: it hits all panes with cli id ≥ 2^44, also in window 1, and those are panes made after a tern start
 
 commands and ssh
 
 - `tern process --window K <pane> --json` gives `foreground.argv`, e.g. `ssh user@host`, for the whole ssh session
 - PaneInfo has no argv or command field; `running.line` is the only command text. a pane made with `tern split ... -- cmd` runs `fish -l -c "cmd"`
 - with tern shell integration on the remote host, remote commands replace the pane's command state: after the first remote command `running` is nil and `last.line` is that command
-- leaving a real ssh session kept the rule color until the plugin also rechecked on `cwd` events; with that recheck the color resets (confirmed by the owner). not traced: whether `command_finished` for the local `ssh` line is missing, and whether `cwd` is the event that fixed it
+- interactive `ssh host` with remote shell integration: `command_finished` status 0 fires ~300 ms after start, when the remote prompt shows. a failed ssh finishes with 255; `ssh host cmd` finishes when cmd ends
+- Ctrl-D out of a hop fires only `cwd` and `title` events, and only when the directory differs; between two hops in the same directory it fires nothing
+- one `command_started` can arrive twice within 1 ms in the same plugin copy
 - one `cd` in a local fish pane fired `command_started`, `command_finished`, `cwd` and several `title` events; a lookup per event cost 7 processes, so the plugin does not hook `title`
 
 styling
