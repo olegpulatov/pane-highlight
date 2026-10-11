@@ -1,3 +1,5 @@
+https://github.com/user-attachments/assets/787ace79-21af-477f-9410-4f8886717fa4
+
 # pane-highlight
 
 a tern plugin that marks the active pane in split views and recolors it while it works as a given user or on a given host.
