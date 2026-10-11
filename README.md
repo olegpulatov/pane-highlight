@@ -1,8 +1,12 @@
-https://github.com/user-attachments/assets/787ace79-21af-477f-9410-4f8886717fa4
+<img width="6016" height="3384" alt="screenshot-full" src="https://github.com/user-attachments/assets/6f86fa5a-dbd4-42bb-a0a6-d47757f737f4" />
 
 # pane-highlight
 
 a tern plugin that marks the active pane in split views and recolors it while it works as a given user or on a given host.
+
+https://github.com/user-attachments/assets/787ace79-21af-477f-9410-4f8886717fa4
+
+## features
 
 - active pane: border and a light tint of the accent color
 - other panes: dimmed
