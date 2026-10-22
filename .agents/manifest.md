@@ -24,7 +24,7 @@ limits, by tern: inactive panes have no per-pane css hook, so only the active pa
 
 testing: the plugin uses luau-only syntax, so there is no `check.lua`; verify live with `tern plugin reload` in a test window. css rendering can be checked without touching user windows: `tern serve --control SOCK`, `tern ctl --control SOCK css pane-highlight FILE`, `split right`, `dump SELECTOR`, `appearance dark`, `shot NAME`
 
-styling relies on tern's internal pane selectors (`.tn-pane.on`, `.tn-body`, `.tn-veil`); they are undocumented and may change between tern versions.
+styling relies on tern's internal pane selectors (`.tn-pane.on`, `.tn-pane.headed`, `.tn-head`, `.tn-body`, `.tn-veil`); they are undocumented and may change between tern versions.
 
 keep it readable and maintainable for future contributors. code, tooling, and documentation must earn their place.
 

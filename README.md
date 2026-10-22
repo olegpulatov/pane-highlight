@@ -32,7 +32,7 @@ limits:
 - only the active pane gets the rule color; tern gives inactive panes no per-pane style hook
 - sudo's cached password ("no password for 5 minutes") is per terminal and not visible to plugins; a prompt module such as starship's `sudo` shows it
 
-styling uses tern's internal pane selectors (`.tn-pane.on`, `.tn-body`, `.tn-veil`). a tern update may rename them; then the highlight disappears until the plugin is updated.
+styling uses tern's internal pane selectors (`.tn-pane.on`, `.tn-pane.headed`, `.tn-head`, `.tn-body`, `.tn-veil`). a tern update may rename them; then the highlight disappears until the plugin is updated.
 
 ## install
 

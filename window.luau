@@ -342,12 +342,33 @@ local function set_style(color: string)
 		"pane-highlight",
 		string.format(
 			[[
-		.tn-stage .tn-pane.on.multi .tn-body {
-			box-shadow: inset 0 0 0 %gpx %s !important;
-			background: light-dark(
+		.tn-stage .tn-pane.on.multi {
+			--ph-border: %gpx;
+			--ph-color: %s;
+			--ph-bg: light-dark(
 				color-mix(in srgb, var(--tv-bg), %s %g%%),
 				color-mix(in srgb, var(--tv-bg), %s %g%%)
-			) !important;
+			);
+		}
+		.tn-stage .tn-pane.on.multi:not(.headed) .tn-body {
+			box-shadow: inset 0 0 0 var(--ph-border) var(--ph-color) !important;
+			background: var(--ph-bg) !important;
+		}
+		.tn-stage .tn-pane.on.multi.headed :is(.tn-head, .tn-body) {
+			background: var(--ph-bg) !important;
+		}
+		.tn-stage .tn-pane.on.multi.headed .tn-head {
+			box-shadow:
+				inset 0 var(--ph-border) 0 0 var(--ph-color),
+				inset var(--ph-border) 0 0 0 var(--ph-color),
+				inset calc(-1 * var(--ph-border)) 0 0 0 var(--ph-color),
+				inset 0 -1px 0 var(--l1) !important;
+		}
+		.tn-stage .tn-pane.on.multi.headed .tn-body {
+			box-shadow:
+				inset 0 calc(-1 * var(--ph-border)) 0 0 var(--ph-color),
+				inset var(--ph-border) 0 0 0 var(--ph-color),
+				inset calc(-1 * var(--ph-border)) 0 0 0 var(--ph-color) !important;
 		}
 		.tn-stage .tn-pane.dim .tn-veil {
 			opacity: %g !important;
