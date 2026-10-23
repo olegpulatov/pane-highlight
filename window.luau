@@ -8,6 +8,7 @@ local DEFAULT_TINT_LIGHT = 3 -- % of the color mixed into the terminal backgroun
 local DEFAULT_TINT_DARK = 5
 local DEFAULT_BORDER = 1 -- px, 0 = none
 local DEFAULT_DIM = 0.3 -- veil opacity over inactive panes, 0 = off
+local DEFAULT_SINGLE = false -- also mark a pane shown alone: the only pane, or zoomed
 local DEFAULT_COLOR = "var(--accent)"
 local PALETTE: { [string]: string } = {
 	amber = "#F2B04C",
@@ -63,7 +64,7 @@ local SUDO_VALUE_OPTS: { [string]: boolean } = {
 
 local config_path = tern.plugin.data .. "/config.json"
 local tint_light, tint_dark = DEFAULT_TINT_LIGHT, DEFAULT_TINT_DARK
-local border, dim = DEFAULT_BORDER, DEFAULT_DIM
+local border, dim, single = DEFAULT_BORDER, DEFAULT_DIM, DEFAULT_SINGLE
 local colors: { [string]: string } = table.clone(PALETTE)
 local rules: { Rule } = DEFAULT_RULES
 
@@ -92,6 +93,10 @@ if tern.fs.exists(config_path) then
 	end
 	border = expect(config.border, "number", "border") or border
 	dim = expect(config.dim, "number", "dim") or dim
+	local user_single = expect(config.single, "boolean", "single")
+	if user_single ~= nil then
+		single = user_single
+	end
 	for name, value in expect(config.colors, "table", "colors") or {} do
 		colors[name] = expect(value, "string", "colors." .. tostring(name))
 	end
@@ -332,17 +337,17 @@ end
 -- Style ---------------------------------------------------------------------
 
 -- tern.css replaces the whole sheet and restyles the window, so only on a change.
+-- The tint is an opaque background: the active pane stands out of a translucent window.
+-- Tern marks the active pane `.on`; `.multi` while the tab shows more than one pane.
+local ACTIVE = if single then ".tn-stage .tn-pane.on" else ".tn-stage .tn-pane.on.multi"
 local shown: string? = nil
 local function set_style(color: string)
 	if color == shown then
 		return
 	end
 	shown = color
-	tern.css(
-		"pane-highlight",
-		string.format(
-			[[
-		.tn-stage .tn-pane.on.multi {
+	local template = [[
+		ACTIVE {
 			--ph-border: %gpx;
 			--ph-color: %s;
 			--ph-bg: light-dark(
@@ -350,21 +355,21 @@ local function set_style(color: string)
 				color-mix(in srgb, var(--tv-bg), %s %g%%)
 			);
 		}
-		.tn-stage .tn-pane.on.multi:not(.headed) .tn-body {
+		ACTIVE:not(.headed) .tn-body {
 			box-shadow: inset 0 0 0 var(--ph-border) var(--ph-color) !important;
 			background: var(--ph-bg) !important;
 		}
-		.tn-stage .tn-pane.on.multi.headed :is(.tn-head, .tn-body) {
+		ACTIVE.headed :is(.tn-head, .tn-body) {
 			background: var(--ph-bg) !important;
 		}
-		.tn-stage .tn-pane.on.multi.headed .tn-head {
+		ACTIVE.headed .tn-head {
 			box-shadow:
 				inset 0 var(--ph-border) 0 0 var(--ph-color),
 				inset var(--ph-border) 0 0 0 var(--ph-color),
 				inset calc(-1 * var(--ph-border)) 0 0 0 var(--ph-color),
 				inset 0 -1px 0 var(--l1) !important;
 		}
-		.tn-stage .tn-pane.on.multi.headed .tn-body {
+		ACTIVE.headed .tn-body {
 			box-shadow:
 				inset 0 calc(-1 * var(--ph-border)) 0 0 var(--ph-color),
 				inset var(--ph-border) 0 0 0 var(--ph-color),
@@ -373,16 +378,11 @@ local function set_style(color: string)
 		.tn-stage .tn-pane.dim .tn-veil {
 			opacity: %g !important;
 		}
-	]],
-			border,
-			color,
-			color,
-			tint_light,
-			color,
-			tint_dark,
-			dim
-		)
-	)
+	]]
+	-- The selector goes in before the colors, so no color text is rewritten.
+	local css =
+		string.format((template:gsub("ACTIVE", ACTIVE)), border, color, color, tint_light, color, tint_dark, dim)
+	tern.css("pane-highlight", css)
 end
 
 -- Panes ---------------------------------------------------------------------

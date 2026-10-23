@@ -4,11 +4,12 @@ source of truth for goals and decisions. agents check their work against it and 
 
 ## what it is
 
-tern window plugin that marks the active pane in split views and recolors it while it works as a given user or on a given host. made to be shared as open source: published defaults are universal (`root`, `prod-*`, `dev-*`); personal rules live in each user's `config.json`.
+tern window plugin that marks the active pane in split views (optionally also a pane shown alone) and recolors it while it works as a given user or on a given host. made to be shared as open source: published defaults are universal (`root`, `prod-*`, `dev-*`); personal rules live in each user's `config.json`.
 
 features:
 
-- active pane: inset border and a tint of the accent color over the terminal background, tint % separate for light and dark appearance (`light-dark()`)
+- active pane: inset border and a tint of the accent color over the terminal background, tint % separate for light and dark appearance (`light-dark()`). the tint is an opaque background on purpose: in a translucent window the active pane reads better, and the translucent inactive panes keep focus on it. never turn it into a translucent layer
+- single pane: off by default; config `single: true` marks also a pane shown alone (the only pane of a tab, or a zoomed pane), so it stands out of a translucent window. tern classes: alone `.on.lone`, zoomed `.on`, split `.on.multi`
 - inactive panes: dimmed
 - rules: ordered `{user?, host?, color}`; colors are palette names or css colors; user palette entries add to the built-in one. the innermost login decides (`sudo -i` inside `ssh deploy@web1` is root); for it, the first matching rule wins
 - detection: running command line from `cx.session:pane("@focused")` and command events, split into commands at `;`, `&&`, `||`, `|` (`ssh`, `tern ssh`, `su`, `sudo`, `sudo su`; no user = root); remembered logins per pane (a line that is one interactive login: `ssh host`, `su`, `sudo -i`; not `ssh host cmd` or lines with separators), taken off on `exit`/`logout`, on a non-zero finish of the line that added them, and on a `cwd` event back to a directory a login was typed in (Ctrl-D; ignored while a command runs or within `CWD_GUARD_MS` of a command start/finish, and right after `exit`); the pane's foreground program from `tern process <pane> --json` (outermost ssh; foreground pid = child pid means the pane's own shell, which clears remembered logins); remoting host name and login user from `cx.hosts`; tern's own user. checked again on focus, command start/finish and `cwd` change
@@ -34,7 +35,7 @@ keep it readable and maintainable for future contributors. code, tooling, and do
 - user config: defaults in code, optional user file overrides them
 - justfile: link, reload, edit-config, types, test, lint, fmt, bump
 - offline check: optional `check.lua` with a fake `tern`, run by stock lua. it never shapes the plugin code: when the entry file needs luau-only features, delete the check and verify live
-- texts: `README.md` (what, install, config), `LICENSE`, `.agents/AGENTS.md`, this manifest
+- texts: `README.md` (what, install, config), `CHANGELOG.md` (user-visible changes per version), `LICENSE`, `.agents/AGENTS.md`, this manifest
 - tern awareness: agent rules point to public tern docs (https://docs.stencil.so/tern/), `tern help`, generated api types
 
 ## key decisions
@@ -63,6 +64,7 @@ versioning
 
 - `plugin.toml` `version` is the only version
 - each finished change to plugin code or `plugin.toml` gets one bump, not each edit. docs-only or tooling-only changes may skip it
+- each bump gets a `CHANGELOG.md` entry: what a user sees, newest first
 - `just bump` bumps patch; an argument picks minor or major
 
 ## development

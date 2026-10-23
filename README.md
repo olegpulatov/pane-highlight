@@ -8,8 +8,9 @@ https://github.com/user-attachments/assets/787ace79-21af-477f-9410-4f8886717fa4
 
 ## features
 
-- active pane: border and a light tint of the accent color
+- active pane: border and an opaque tint of the accent color. in a translucent window the active pane reads better and the translucent inactive panes keep the focus on it
 - other panes: dimmed
+- a pane shown alone (the only pane, or zoomed): unmarked by default; `"single": true` marks it too
 - rules: while the active pane works as a matching user or on a matching host, border and tint take the rule's color; back to accent when the session ends or focus moves
 
 out of the box: `root` ember, `prod-*` hosts red, `dev-*` hosts mint.
@@ -58,6 +59,7 @@ defaults:
   "tint": { "light": 3, "dark": 5 },
   "border": 1,
   "dim": 0.3,
+  "single": false,
   "colors": {},
   "rules": [
     { "user": "root", "color": "ember" },
@@ -70,6 +72,7 @@ defaults:
 - `tint`: % of the color mixed into the terminal background, separate for light and dark themes
 - `border`: border width in px, 0 = none. its color follows the tint color
 - `dim`: veil opacity over inactive panes, 0 = no dimming
+- `single`: `true` also marks a pane shown alone, the only pane of a tab or a zoomed one: border, tint and rule colors. useful in translucent windows, where a single pane is hard to see
 - `colors`: your own named colors; they add to or replace the built-in palette: `amber` `#F2B04C`, `red` `#E85B5B`, `magma` `#FF7A3D`, `ember` `#b84a2c`, `sage` `#6a9a6a`, `mint` `#35C28A`, `sky` `#6FB3FF`, `blue` `#5AA4FF`, `cyan` `#3FD3FF`, `rose` `#e5b4d4`
 - `rules`: each has `color` (palette name or any css color) and `user`, `host`, or both. `host` takes `*` and `?` globs and matches the name as typed after `ssh`, so ssh config aliases work. the innermost login decides (`sudo -i` inside `ssh deploy@web1` is `root`); for it, rules are checked in order and the first match wins. your `rules` replace the default list
 
